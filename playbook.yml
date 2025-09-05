@@ -1,0 +1,12 @@
+---
+- name: Setup Kali VM mit x-resize und Burp Suite
+  hosts: all
+  become: yes
+
+  vars_prompt:
+    - name: "burp_license_key"
+      prompt: "Bitte Burp Suite Professional Lizenzschlüssel eingeben"
+      private: yes
+
+  roles:
+    - kali_setup

@@ -1,0 +1,53 @@
+---
+- name: Installiere benötigte Pakete
+  apt:
+    name:
+      - qemu-guest-agent
+      - spice-vdagent
+      - xserver-xspice
+      - xserver-xorg-video-qxl
+      - x11-xserver-utils
+      - openjdk-17-jre
+    state: present
+    update_cache: yes
+
+- name: Lade x-resize Script herunter
+  get_url:
+    url: "https://gist.githubusercontent.com/3lpsy/4cc344ae031bf77595991c536cbd3275/raw/f0f59f56766fb6ec892b5a6d5a2617c235793b27/x-resize"
+    dest: /usr/local/bin/x-resize
+    mode: '0755'
+
+- name: Erstelle udev-Regel für x-resize
+  copy:
+    dest: /etc/udev/rules.d/50-x-resize.rules
+    content: |
+      ACTION=="change",KERNEL=="card0", SUBSYSTEM=="drm", RUN+="/usr/local/bin/x-resize"
+
+- name: Udev Regeln neu laden
+  command: udevadm control --reload-rules
+
+- name: Optional spice-vdagentd aktivieren und starten
+  systemd:
+    name: spice-vdagentd
+    enabled: yes
+    state: started
+
+- name: Burp Suite Professional herunterladen
+  get_url:
+    url: "https://portswigger.net/burp/releases/download?product=pro&version=latest&type=Linux"
+    dest: /opt/burpsuite/burpsuite_pro.sh
+    mode: '0755'
+  ignore_errors: yes
+
+- name: Burp Suite Professional installieren
+  shell: |
+    bash /opt/burpsuite/burpsuite_pro.sh --mode unattended --prefix /opt/burpsuite
+  args:
+    creates: /opt/burpsuite/BurpSuitePro
+
+- name: Lizenzschlüssel in Burp Suite eintragen
+  debug:
+    msg: "Lizenzschlüssel {{ burp_license_key }} müsste hier automatisiert eingetragen werden (Implementierung abhängig von Burp CLI oder Konfig)"
+
+# Hinweis: Die Lizenz-Aktivierung ist häufig ein manueller oder GUI-basierter Schritt,
+# der ggf. nicht komplett automatisiert installiert werden kann.
